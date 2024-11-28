@@ -1,27 +1,48 @@
-# Sakai
+# Guía de instalación y ejecución del proyecto
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.0.4.
+Este documento proporciona las instrucciones necesarias para clonar, instalar dependencias y ejecutar el proyecto de manera local.
 
-## Development server
+## Requisitos previos
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Antes de empezar, asegurate de tener los siguientes programas instalados en tu máquina:
 
-## Code scaffolding
+* [npm](https://www.npmjs.com/): Gestor de dependencias de node.js que recomendamos para facilitar la instalación de este mismo
+* [Node 20+](https://nodejs.org/en/): Versión recomendada de Node.js para ejecutar el proyecto en un entorno local
+* [Git](https://git-scm.com/downloads): Necesario para clonar el repositorio
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Pasos para ejecutar el proyecto
 
-## Build
+1. **Clonar el repositorio**
+   Clona el repositorio en tu máquina local utilizando Git:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+   ```git
+   git clone https://github.com/ITheBroncoI/CPM-Project-Frontend.git
+   cd CPM-Project-Frontend
+   ```
+2. Asegurate de utilizar la versión recomendada de node.js para la ejecución del proyecto. La cual se sugiere que sea la 20.14.0:
 
-## Running unit tests
+   ```
+   nvm use 20.14.0
+   ```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+   Si no tienes dicha versión de node instalada, instalalo de la siguiente manera:
 
-## Running end-to-end tests
+   ```
+   nvm install 20.14.0
+   ```
+3. **Instalar las dependencias**
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+   Instala todas las dependencias necesarias para el proyecto haciendo uso del `package.json`:
 
-## Further help
+   ```
+   npm install
+   ```
+4. E**jecutar la aplicación web**
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+   Una vez descargada las dependencias, ejecutar el servidor local:
+
+   ```
+   ng s
+   ```
+
+   Accede a la app web en [http://localhost:4200/](http://localhost:4200/)
