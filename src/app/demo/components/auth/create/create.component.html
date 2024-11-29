@@ -1,0 +1,49 @@
+<div class="flex flex-row min-h-screen min-w-screen">
+    <!-- Seccion izquierda -->
+    <div class="flex flex-column justify-content-center align-items-center w-6 flex-1 px-8">
+        <p class="font-bold text-5xl justify-content-start md:w-30rem mb-5">Registrarse</p>
+        <div class="flex flex-column justify-content-center gap-2">
+            <label class="font-semibold text-2xl">Correo</label>
+            <input id="email1" [(ngModel)]="email" type="text" placeholder="Email" pInputText class="w-full md:w-30rem mb-5 border-round-xl text-xl" style="padding:1rem">
+        </div>
+        <div class="flex flex-column justify-content-center gap-2">
+            <label class="font-semibold text-2xl">Contraseña</label>
+            <div class="p-fluid md:w-30rem ">
+                <p-password [(ngModel)]="password" placeholder="Contraseña" [toggleMask]="true"
+                            promptLabel="Escribe tu contraseña" weakLabel="Débil" mediumLabel="Aceptable"
+                            strongLabel="Fuerte">
+                    <ng-template pTemplate="header">
+                        <h6 class="text-2xl">Configura tu contraseña</h6>
+                    </ng-template>
+                    <ng-template pTemplate="footer">
+                        <p-divider/>
+                        <p class="mt-2 text-xl">Sugerencias...</p>
+                        <ul class="pl-2 ml-2 mt-0 text-lg" style="line-height: 1.5">
+                            <li>Al menos una minúscula</li>
+                            <li>Al menos una mayúscula</li>
+                            <li>Al menos un número</li>
+                            <li>Mínimo 8 caracteres</li>
+                        </ul>
+                    </ng-template>
+                </p-password>
+            </div>
+        </div>
+        <button pButton pRipple label="Crear cuenta" class="md:w-30rem p-3 text-2xl mt-6 border-round-xl" (click)="onCreateUser()"></button>
+    </div>
+
+
+    <!-- Seccion derecha -->
+    <div class="flex flex-column justify-content-center w-6 flex-1 px-8  bg-primary-600">
+        <div class="flex justify-content-center flex-wrap">
+            <p class="text-7xl font-semibold text-white-alpha-90">¡ Bienvenido !</p>
+        </div>
+        <div class="flex justify-content-center flex-wrap">
+            <p class="text-5xl font-normal text-white-alpha-90 mt-2">Ya tienes una cuenta?</p>
+        </div>
+        <div class="flex justify-content-center flex-wrap pt-7">
+            <button pButton pRipple type="button" label="Iniciar sesión"
+                    class="p-button-outlined w-3 white-button text-2xl md:w-30rem border-round-xl" [routerLink]="['/']"></button>
+        </div>
+    </div>
+
+</div>

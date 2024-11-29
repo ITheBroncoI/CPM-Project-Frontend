@@ -20,4 +20,8 @@ export class LoginComponent {
     password!: string;
 
     constructor(public layoutService: LayoutService) { }
+
+    onLogin() {
+
+    }
 }
