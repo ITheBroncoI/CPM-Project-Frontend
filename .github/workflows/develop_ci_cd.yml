@@ -1,0 +1,68 @@
+---
+
+name: Develop CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  develop_ci_cd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.x
+          
+      - name: Setup
+        run: npm ci
+
+      - name: Test
+        run: |
+          npm test -- --no-watch --no-progress --browsers=ChromeHeadlessCI
+
+      - name: build angular, output in dist/critic_route
+        run: |
+          CI=false npm run build
+
+      - name: show dir
+        run: |
+          ls -la dist/critic_route
+
+      - name: download, run httpd image, container name apache
+        run: |
+          docker run -d --name critic_route httpd
+
+      - name: docker ps
+        run: | 
+          docker ps
+
+      - name: cp angular build to container
+        run: | 
+          docker cp dist/critic_route/. critic_route:/usr/local/apache2/htdocs
+
+      - name: list container
+        run: |
+          docker exec critic_route ls -la /usr/local/apache2/htdocs
+
+      - name: build the custom docker image
+        run: docker commit critic_route ${{secrets.DOCKER_USER}}/${{secrets.DOCKER_REPOSITORY}}:develop
+
+      - name: show docker images
+        run: docker images
+
+      - name: docker login
+        env: 
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+      - name: Docker push
+        run: docker push ${{secrets.DOCKER_USER}}/${{secrets.DOCKER_REPOSITORY}}:develop
