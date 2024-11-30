@@ -2,7 +2,6 @@ import {RouterModule, Routes} from '@angular/router';
 import { NgModule } from '@angular/core';
 import { NotfoundComponent } from './demo/components/notfound/notfound.component';
 import { AppLayoutComponent } from "./layout/app.layout.component";
-import {LoginComponent} from "./demo/components/auth/login/login.component";
 
 const routes: Routes = [
     { path: '', redirectTo: 'auth', pathMatch: 'full' },
@@ -10,7 +9,6 @@ const routes: Routes = [
     {
         path: '', component: AppLayoutComponent,
         children: [
-
         ]
     },
     { path: 'notfound', component: NotfoundComponent },

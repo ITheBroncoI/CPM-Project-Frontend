@@ -6,8 +6,8 @@ import { Component } from '@angular/core';
   styleUrl: './create.component.scss'
 })
 export class CreateComponent {
-  password: any;
-  email: any;
+  password: string;
+  email: string;
 
   onCreateUser() {
 
