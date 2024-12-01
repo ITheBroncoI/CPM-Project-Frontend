@@ -1,105 +1,120 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { MenuItem } from 'primeng/api';
-import { Product } from '../../api/product';
-import { ProductService } from '../../service/product.service';
-import { Subscription, debounceTime } from 'rxjs';
-import { LayoutService } from 'src/app/layout/service/app.layout.service';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {DatePipe, NgStyle} from "@angular/common";
+import {ButtonModule} from "primeng/button";
+import {RippleModule} from "primeng/ripple";
+import {RouterLink} from "@angular/router";
+import {Table, TableModule} from "primeng/table";
+import {InputTextModule} from "primeng/inputtext";
+import {InputTextareaModule} from "primeng/inputtextarea";
+import {FormsModule} from "@angular/forms";
+import {DialogModule} from "primeng/dialog";
+import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload";
 
 @Component({
+    selector: 'app-dashboard',
+    standalone: true,
+    imports: [
+        NgStyle,
+        ButtonModule,
+        RippleModule,
+        RouterLink,
+        TableModule,
+        DatePipe,
+        InputTextModule,
+        InputTextareaModule,
+        FormsModule,
+        DialogModule,
+        FileUploadModule
+    ],
     templateUrl: './dashboard.component.html',
+    styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
 
-    items!: MenuItem[];
+    // Variables relacionadas a la tabla de proyectos
+    tasks: any[] = []; // Aquí guardaremos las tareas o proyectos
+    @ViewChild('filter') filter!: ElementRef;
+    loading: boolean = true; // Estado de carga
 
-    products!: Product[];
+    // Variables relacionadas a la pestaña de importación de proyectos
+    visible: boolean = false;
+    tituloProyecto: string;
+    descripcionProyecto: string;
 
-    chartData: any;
-
-    chartOptions: any;
-
-    subscription!: Subscription;
-
-    constructor(private productService: ProductService, public layoutService: LayoutService) {
-        this.subscription = this.layoutService.configUpdate$
-        .pipe(debounceTime(25))
-        .subscribe((config) => {
-            this.initChart();
-        });
-    }
+    // Referencia al componente p-fileUpload
+    @ViewChild('fileUpload') fileUpload: FileUpload | undefined;
 
     ngOnInit() {
-        this.initChart();
-        this.productService.getProductsSmall().then(data => this.products = data);
-
-        this.items = [
-            { label: 'Add New', icon: 'pi pi-fw pi-plus' },
-            { label: 'Remove', icon: 'pi pi-fw pi-minus' }
-        ];
-    }
-
-    initChart() {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
-        const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
-
-        this.chartData = {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-            datasets: [
-                {
-                    label: 'First Dataset',
-                    data: [65, 59, 80, 81, 56, 55, 40],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    borderColor: documentStyle.getPropertyValue('--bluegray-700'),
-                    tension: .4
-                },
-                {
-                    label: 'Second Dataset',
-                    data: [28, 48, 40, 19, 86, 27, 90],
-                    fill: false,
-                    backgroundColor: documentStyle.getPropertyValue('--green-600'),
-                    borderColor: documentStyle.getPropertyValue('--green-600'),
-                    tension: .4
-                }
-            ]
-        };
-
-        this.chartOptions = {
-            plugins: {
-                legend: {
-                    labels: {
-                        color: textColor
-                    }
-                }
+        // Simulación de la carga de datos para las tareas
+        this.tasks = [
+            {
+                folio: '001',
+                titulo: 'Construcción',
+                descripcion: 'Planificación de obra',
+                fechaInicio: new Date('2024-10-1'),
+                unidadTiempo: 'Días',
+                hrsTrabajo: 8
             },
-            scales: {
-                x: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: textColorSecondary
-                    },
-                    grid: {
-                        color: surfaceBorder,
-                        drawBorder: false
-                    }
-                }
-            }
-        };
+            {
+                folio: '002',
+                titulo: 'Software',
+                descripcion: 'Desarrollo de sistema',
+                fechaInicio: new Date('2024-11-5'),
+                unidadTiempo: 'Días',
+                hrsTrabajo: 8
+            },
+            {
+                folio: '003',
+                titulo: 'Evento',
+                descripcion: 'Organización de evento',
+                fechaInicio: new Date('2024-11-12'),
+                unidadTiempo: 'Horas',
+                hrsTrabajo: '-'
+            },
+            {
+                folio: '004',
+                titulo: 'Diseño',
+                descripcion: 'Creación de mockups',
+                fechaInicio: new Date('2024-12-7'),
+                unidadTiempo: 'Horas',
+                hrsTrabajo: '-'
+            },
+        ];
+
+        this.loading = false;
     }
 
-    ngOnDestroy() {
-        if (this.subscription) {
-            this.subscription.unsubscribe();
+    // Método para aplicar el filtro global
+    onGlobalFilter(table: Table, event: Event) {
+        table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+    }
+
+    // Método para limpiar los filtros
+    clear(table: Table) {
+        table.clear();
+        this.filter.nativeElement.value = '';
+    }
+
+    abrirPestanaImportacion() {
+        this.visible = true
+    }
+
+    cerrarPestanaImportacion() {
+        this.visible = false;
+        this.tituloProyecto = '';
+        this.descripcionProyecto = '';
+        // Limpiar la selección de archivo
+        if (this.fileUpload) {
+            this.fileUpload.clear();  // Esto elimina el archivo seleccionado
         }
+    }
+
+    importarProyecto() {
+        // Implementacion de logica al momento de importar el objeto
+    }
+
+    subirArchivo($event: FileUploadEvent) {
+        // Implementacion al momento de seleccionar archivo
+        console.log("PRUEBA - TEST");
     }
 }
