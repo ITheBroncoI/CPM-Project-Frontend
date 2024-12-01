@@ -10,11 +10,10 @@ const routes: Routes = [
         path: '', component: AppLayoutComponent,
         children: [
             { path: 'dashboard', loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule) },
+            { path: 'detalleProyecto', loadChildren: () => import('./demo/components/detalle-proyecto/detalle-proyecto.module').then(m => m.DetalleProyectoModule) },
         ]
     },
     { path: 'notfound', component: NotfoundComponent },
-    { path: 'create', loadChildren: () => import('./demo/components/auth/create/create.module').then(m => m.CreateModule) },
-    { path: 'dashboard', loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule) },
     { path: '**', redirectTo: '/notfound' }
 ];
 

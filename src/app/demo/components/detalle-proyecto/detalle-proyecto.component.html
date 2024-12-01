@@ -1,0 +1,109 @@
+<div class="flex flex-column gap-4">
+    <div class="flex flex-column border-round-2xl">
+        <div class="card mb-0 shadow-2">
+            <p class="font-semibold text-500 text-3xl -my-2">Proyecto: </p>
+        </div>
+    </div>
+    <div class="flex flex-column border-round-2xl">
+        <div class="card mb-0 shadow-2">
+            <div class="flex flex-row gap-5">
+                <div class="flex flex-column w-3">
+                    <div class="flex flex-column w-full">
+                        <p class="font-semibold">Descripción:</p>
+                        <textarea
+                            rows="5"
+                            cols="30"
+                            pInputTextarea
+                            [(ngModel)]="descripcionProyecto"
+                            class="w-full">
+                        </textarea>
+                    </div>
+                    <div class="flex mt-5 w-full">
+                        <div class="card shadow-2 w-full">
+                            <p class="font-semibold text-xl mb-2">Tarea: #2</p>
+
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Acción:</p>
+                                <p class="font-semibold">Diseño del sistema</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Inicio más proximo:</p>
+                                <p class="font-semibold">21/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Tiempo esperado:</p>
+                                <p class="font-semibold">5 días</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Terminación más proximo:</p>
+                                <p class="font-semibold">27/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Inicio más lejano:</p>
+                                <p class="font-semibold">23/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Terminacion más lejano:</p>
+                                <p class="font-semibold">29/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Holgura:</p>
+                                <p class="font-semibold">2 días</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Fecha inicial:</p>
+                                <p class="font-semibold">21/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Fecha final:</p>
+                                <p class="font-semibold">27/11/2024</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Estado:</p>
+                                <p class="font-semibold">En progreso</p>
+                            </div>
+                            <div class="flex justify-content-between">
+                                <p class="font-medium">Responsables:</p>
+                                <p class="font-semibold justify-content-end">Daniel Martinez<br>
+                                    David Ochoa</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-column w-full mt-3 gap-2">
+                        <button
+                            pButton
+                            pRipple
+                            label="Borrar proyecto"
+                            icon="pi pi-trash"
+                            iconPos="right"
+                            class="p-button-danger"
+                            (click)="borrarProyecto()">
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-column w-9">
+                    <div class="flex flex-row w-full gap-6">
+                        <div class="flex flex-column justify-content-between w-full">
+                            <p class="font-semibold">Fecha de inicio:</p>
+                            <input type="text" pInputText [(ngModel)]="fechaInicio" class="w-full" />
+                        </div>
+                        <div class="flex flex-column justify-content-between w-full">
+                            <p class="font-semibold">Unidad de tiempo:</p>
+                            <input type="text" pInputText [(ngModel)]="unidadTiempo" class="w-full" />
+                        </div>
+                        <div class="flex flex-column justify-content-between w-full">
+                            <p class="font-semibold">Hrs de trabajo al dia:</p>
+                            <input type="text" pInputText [(ngModel)]="hrsTrabajoPorDia" class="w-full" />
+                        </div>
+                    </div>
+                    <div class="flex flex-column border-round-xl border-1 border-300 expandable-container overflow-x-auto overflow-y-auto mt-5">
+                        <!-- DIV donde se renderizaran los grafos -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
