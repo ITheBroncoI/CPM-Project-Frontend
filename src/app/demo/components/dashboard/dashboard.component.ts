@@ -2,13 +2,15 @@ import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {DatePipe, NgStyle} from "@angular/common";
 import {ButtonModule} from "primeng/button";
 import {RippleModule} from "primeng/ripple";
-import {RouterLink} from "@angular/router";
-import {Table, TableModule} from "primeng/table";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
+import {Table, TableModule, TableRowSelectEvent} from "primeng/table";
 import {InputTextModule} from "primeng/inputtext";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {FormsModule} from "@angular/forms";
 import {DialogModule} from "primeng/dialog";
 import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload";
+import {LayoutService} from "../../../layout/service/app.layout.service";
+import {PrimeNGConfig} from "primeng/api";
 
 @Component({
     selector: 'app-dashboard',
@@ -31,6 +33,14 @@ import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload"
 })
 export class DashboardComponent implements OnInit {
 
+    constructor(
+        public layoutService: LayoutService,
+        private readonly primeNGConfig: PrimeNGConfig,
+        private readonly router: Router,
+        private readonly route: ActivatedRoute,
+    ) {
+    }
+
     // Variables relacionadas a la tabla de proyectos
     tasks: any[] = []; // Aquí guardaremos las tareas o proyectos
     @ViewChild('filter') filter!: ElementRef;
@@ -45,6 +55,8 @@ export class DashboardComponent implements OnInit {
     @ViewChild('fileUpload') fileUpload: FileUpload | undefined;
 
     ngOnInit() {
+        this.primeNGConfig.ripple = true;
+
         // Simulación de la carga de datos para las tareas
         this.tasks = [
             {
@@ -90,6 +102,7 @@ export class DashboardComponent implements OnInit {
     }
 
     // Método para limpiar los filtros
+
     clear(table: Table) {
         table.clear();
         this.filter.nativeElement.value = '';
@@ -116,5 +129,10 @@ export class DashboardComponent implements OnInit {
     subirArchivo($event: FileUploadEvent) {
         // Implementacion al momento de seleccionar archivo
         console.log("PRUEBA - TEST");
+    }
+
+    seleccionarProyecto(event: any) {
+        //console.log('Folio seleccionado:', event.data.folio);
+        this.router.navigate(['/detalleProyecto'], { relativeTo: this.route });
     }
 }
