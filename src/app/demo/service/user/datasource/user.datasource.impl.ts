@@ -6,6 +6,7 @@ import { AuthTokenModel } from "../model/authToken.model";
 import { UserEndpoints } from "./user.endpoints";
 import { firstValueFrom, throwError } from "rxjs";
 import { instanceToPlain, plainToInstance } from "class-transformer";
+import { BadCredentialsException, BadRequestException, InternalServerException } from "src/app/demo/exceptions/exception";
 
 export class UserDatasourceImpl implements UserDatasource {
     constructor(
@@ -28,9 +29,9 @@ export class UserDatasourceImpl implements UserDatasource {
             return true;
         } catch (error) {
             if (error instanceof HttpErrorResponse) {
-                if (error.status === 500) {
-                    throw new Error('Error interno del servidor');
-                }
+                if (error.status === 401) throw new BadCredentialsException
+                if (error.status === 400) throw new BadRequestException();
+                if (error.status === 500) throw new InternalServerException();
             }
             return false;
         }
@@ -51,9 +52,9 @@ export class UserDatasourceImpl implements UserDatasource {
             return true;
         } catch (error) {
             if (error instanceof HttpErrorResponse) {
-                if (error.status === 500) {
-                    throw new Error('Error interno del servidor');
-                }
+                if (error.status === 401) throw new BadCredentialsException
+                if (error.status === 400) throw new BadRequestException();
+                if (error.status === 500) throw new InternalServerException();
             }
             return false;
         }
