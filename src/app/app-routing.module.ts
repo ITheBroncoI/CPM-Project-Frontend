@@ -10,7 +10,7 @@ const routes: Routes = [
         path: '', component: AppLayoutComponent,
         children: [
             { path: 'dashboard', loadChildren: () => import('./demo/components/dashboard/dashboard.module').then(m => m.DashboardModule) },
-            { path: 'detalleProyecto', loadChildren: () => import('./demo/components/detalle-proyecto/detalle-proyecto.module').then(m => m.DetalleProyectoModule) },
+            { path: 'detalleProyecto/:id', loadChildren: () => import('./demo/components/detalle-proyecto/detalle-proyecto.module').then(m => m.DetalleProyectoModule) },
         ]
     },
     { path: 'notfound', component: NotfoundComponent },
