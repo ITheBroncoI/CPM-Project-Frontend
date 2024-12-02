@@ -3,6 +3,7 @@ import { DetalleProyectoComponent } from './detalle-proyecto.component';
 import { RouterTestingModule } from '@angular/router/testing'; // Importación correcta
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('DetalleProyectoComponent', () => {
   let component: DetalleProyectoComponent;
@@ -12,7 +13,8 @@ describe('DetalleProyectoComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         RouterTestingModule, 
-        DetalleProyectoComponent // Aquí se importa directamente el componente en lugar de declararlo
+        DetalleProyectoComponent,
+        HttpClientTestingModule 
       ],
       providers: [
         {
