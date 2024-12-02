@@ -133,6 +133,6 @@ export class DashboardComponent implements OnInit {
 
     seleccionarProyecto(event: any) {
         //console.log('Folio seleccionado:', event.data.folio);
-        this.router.navigate(['/detalleProyecto'], { relativeTo: this.route });
+        this.router.navigate([`/detalleProyecto/${event.data.folio}`], { relativeTo: this.route });
     }
 }

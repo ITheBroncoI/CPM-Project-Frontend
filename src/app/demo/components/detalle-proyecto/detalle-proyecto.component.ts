@@ -1,10 +1,11 @@
-import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnInit } from '@angular/core';
 import { InputTextModule } from "primeng/inputtext";
 import { FormsModule } from "@angular/forms";
 import { InputTextareaModule } from "primeng/inputtextarea";
 import { ButtonModule } from "primeng/button";
 import { RippleModule } from "primeng/ripple";
 import * as d3 from 'd3';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -34,6 +35,16 @@ export class DetalleProyectoComponent implements AfterViewInit {
     });
   }
 
+  id: string | null = null;
+
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      this.id = params.get('id'); 
+      console.log('ID recuperado:', this.id);
+    });
+  }
   
   async buscarProyectoPorId(): Promise<any[]> {
     return [
