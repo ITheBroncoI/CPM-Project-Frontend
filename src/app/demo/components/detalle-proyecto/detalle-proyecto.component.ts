@@ -39,6 +39,19 @@ export class DetalleProyectoComponent implements AfterViewInit {
   @ViewChild('chartContainer') chartContainer!: ElementRef;
 
   ngAfterViewInit() {
+    
+  }
+
+  constructor(private route: ActivatedRoute, private http: HttpClient) {
+    this.endpoints = new ProjectDatasourceImpl(new LocalStorageService(), this.http);
+  }
+
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(params => {
+      this.id = Number(params.get('id'));
+      console.log('ID recuperado:', this.id);
+    });
+
     this.buscarProyectoPorId().then(data => {
       const tasks = data.tareas
 
@@ -61,17 +74,11 @@ export class DetalleProyectoComponent implements AfterViewInit {
 
 
       this.createChart(nodes);
-    });
-  }
 
-  constructor(private route: ActivatedRoute, private http: HttpClient) {
-    this.endpoints = new ProjectDatasourceImpl(new LocalStorageService(), this.http);
-  }
-
-  ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      this.id = Number(params.get('id'));
-      console.log('ID recuperado:', this.id);
+      this.descripcionProyecto = data.descripcion
+      this.fechaInicio = data.fechaInicio
+      this.unidadTiempo = data.unidadTiempo
+      this.hrsTrabajoPorDia = `${data.horasTrabajoDia}`;
     });
   }
 
