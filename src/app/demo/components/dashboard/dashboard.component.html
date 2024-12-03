@@ -28,28 +28,20 @@
             <p class="font-semibold text-500 text-3xl">Proyectos</p>
         </div>
         <div class="md:mt-3">
-            <p-table #dt1
-                     [value]="tasks"
-                     dataKey="id"
-                     [rows]="10"
-                     [loading]="loading"
-                     [rowHover]="true"
-                     [paginator]="true"
-                     [globalFilterFields]="['folio','titulo','descripcion','fechaInicio','unidadTiempo','hrsTrabajo']"
-                     responsiveLayout="scroll"
-                     (onRowSelect)="seleccionarProyecto($event)"
-                     selectionMode="single">
+            <p-table #dt1 [value]="projects" dataKey="idProyecto" [rows]="10" [loading]="loading" [rowHover]="true"
+                [paginator]="true"
+                [globalFilterFields]="['idProyecto','titulo','descripcion','fechaInicio','unidadTiempo','horasTrabajoDia']"
+                responsiveLayout="scroll" (onRowSelect)="seleccionarProyecto($event)" selectionMode="single">
 
                 <ng-template pTemplate="caption">
                     <div class="flex justify-content-between flex-column sm:flex-row">
                         <button pButton label="Limpiar" class="p-button-outlined mb-2" icon="pi pi-filter-slash"
-                                (click)="clear(dt1)"></button>
+                            (click)="clear(dt1)"></button>
                         <span class="p-input-icon-left mb-2">
-        <i class="pi pi-search"></i>
-        <input pInputText type="text" #filter (input)="onGlobalFilter(dt1, $event)"
-               placeholder="Buscar Folio, Título, Fecha"
-               class="w-full"/>
-      </span>
+                            <i class="pi pi-search"></i>
+                            <input pInputText type="text" #filter (input)="onGlobalFilter(dt1, $event)"
+                                placeholder="Buscar Folio, Título, Fecha" class="w-full" />
+                        </span>
                     </div>
                 </ng-template>
 
@@ -64,14 +56,14 @@
                     </tr>
                 </ng-template>
 
-                <ng-template pTemplate="body" let-task>
-                    <tr [pSelectableRow]="task">
-                        <td>{{ task.folio }}</td>
-                        <td>{{ task.titulo }}</td>
-                        <td>{{ task.descripcion }}</td>
-                        <td>{{ task.fechaInicio | date: 'dd/MM/yyyy' }}</td>
-                        <td>{{ task.unidadTiempo }}</td>
-                        <td>{{ task.hrsTrabajo }}</td>
+                <ng-template pTemplate="body" let-project>
+                    <tr [pSelectableRow]="project">
+                        <td>{{ project.idProyecto }}</td>
+                        <td>{{ project.titulo }}</td>
+                        <td>{{ project.descripcion }}</td>
+                        <td>{{ project.fechaInicio | date: 'dd/MM/yyyy' }}</td>
+                        <td>{{ project.unidadTiempo }}</td>
+                        <td>{{ project.horasTrabajoDia }}</td>
                     </tr>
                 </ng-template>
 
@@ -104,7 +96,7 @@
             </div>
             <div class="flex w-full">
                 <input type="text" pInputText [(ngModel)]="tituloProyecto"
-                       placeholder="Desarrollo de Plataforma Educativa en Línea" class="w-full"/>
+                    placeholder="Desarrollo de Plataforma Educativa en Línea" class="w-full" />
             </div>
         </div>
 
@@ -114,11 +106,7 @@
                 <p class="font-semibold text-lg">Descripción</p>
             </div>
             <div class="w-full">
-                <textarea
-                    rows="5"
-                    pInputTextarea
-                    [(ngModel)]="descripcionProyecto"
-                    class="w-full"
+                <textarea rows="5" pInputTextarea [(ngModel)]="descripcionProyecto" class="w-full"
                     placeholder="Este proyecto consiste en el desarrollo...">
                 </textarea>
             </div>
@@ -133,15 +121,9 @@
                 <div
                     class="flex flex-column justify-content-center align-items-center border-round-xl border-dashed border-1 w-full h-10rem gap-2">
                     <i class="pi pi-cloud-upload align-content-center"
-                       style="color: var(--primary-color); font-size: 4rem"></i>
-                    <p-fileUpload
-                        mode="basic"
-                        chooseLabel="Seleccionar archivo"
-                        name="demo[]"
-                        url="localhost/"
-                        accept=".xls, .xlsx"
-                        maxFileSize="10000000"
-                        (onUpload)="subirArchivo($event)"/>
+                        style="color: var(--primary-color); font-size: 4rem"></i>
+                    <p-fileUpload mode="basic" chooseLabel="Seleccionar archivo" name="demo[]" url="localhost/"
+                        accept=".xls, .xlsx" maxFileSize="10000000" (onUpload)="subirArchivo($event)" />
                 </div>
             </div>
         </div>
@@ -149,12 +131,11 @@
         <!-- Botones de acción -->
         <div class="flex flex-wrap flex-row justify-content-end mt-6">
             <div class="flex mr-3">
-                <p-button label="Cancelar" [outlined]="true" severity="danger" (onClick)="cerrarPestanaImportacion()"/>
+                <p-button label="Cancelar" [outlined]="true" severity="danger" (onClick)="cerrarPestanaImportacion()" />
             </div>
             <div>
-                <p-button label="Guardar" (onClick)="importarProyecto()"/>
+                <p-button label="Guardar" (onClick)="importarProyecto()" />
             </div>
         </div>
     </div>
 </p-dialog>
-
