@@ -11,6 +11,12 @@ import {DialogModule} from "primeng/dialog";
 import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload";
 import {LayoutService} from "../../../layout/service/app.layout.service";
 import {PrimeNGConfig} from "primeng/api";
+import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
+import {LocalStorageService} from '../../service/localStorage/localStorageService';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {ProjectModel} from '../../service/project/model/project.model';
+import { ErrorComponent } from '../auth/error/error.component';
+import { NotFoundException } from '../../exceptions/exception';
 
 @Component({
     selector: 'app-dashboard',
@@ -32,13 +38,21 @@ import {PrimeNGConfig} from "primeng/api";
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
+    endpoints: ProjectDatasourceImpl;
+    projects: ProjectModel[] = []
 
     constructor(
         public layoutService: LayoutService,
         private readonly primeNGConfig: PrimeNGConfig,
         private readonly router: Router,
         private readonly route: ActivatedRoute,
+        private http: HttpClient
     ) {
+        this.endpoints = new ProjectDatasourceImpl(new LocalStorageService(), this.http);
+    }
+
+    async buscarProyectos(): Promise<ProjectModel[]>{
+        return this.endpoints.buscarProyectos()
     }
 
     // Variables relacionadas a la tabla de proyectos
@@ -54,44 +68,43 @@ export class DashboardComponent implements OnInit {
     // Referencia al componente p-fileUpload
     @ViewChild('fileUpload') fileUpload: FileUpload | undefined;
 
-    ngOnInit() {
+    async ngOnInit() {
         this.primeNGConfig.ripple = true;
 
+        // Carga real de datos de proyectos
+        try {
+            this.projects = await this.buscarProyectos();
+        } catch (error) {
+            throw new NotFoundException;
+        } finally {
+            this.loading = false; 
+        }
+
         // Simulación de la carga de datos para las tareas
-        this.tasks = [
-            {
-                folio: '001',
-                titulo: 'Construcción',
-                descripcion: 'Planificación de obra',
-                fechaInicio: new Date('2024-10-1'),
-                unidadTiempo: 'Días',
-                hrsTrabajo: 8
-            },
-            {
-                folio: '002',
-                titulo: 'Software',
-                descripcion: 'Desarrollo de sistema',
-                fechaInicio: new Date('2024-11-5'),
-                unidadTiempo: 'Días',
-                hrsTrabajo: 8
-            },
-            {
-                folio: '003',
-                titulo: 'Evento',
-                descripcion: 'Organización de evento',
-                fechaInicio: new Date('2024-11-12'),
-                unidadTiempo: 'Horas',
-                hrsTrabajo: '-'
-            },
-            {
-                folio: '004',
-                titulo: 'Diseño',
-                descripcion: 'Creación de mockups',
-                fechaInicio: new Date('2024-12-7'),
-                unidadTiempo: 'Horas',
-                hrsTrabajo: '-'
-            },
-        ];
+        // this.projects = [
+        //     {
+        //         idProyecto: 1,
+        //         titulo: 'Construcción',
+        //         descripcion: 'Planificación de obra',
+        //         fechaInicio: '2024-10-1',
+        //         unidadTiempo: 'Días',
+        //         horasTrabajoDia: 8,
+        //         numDecimales: 0,
+        //         estado: 'Pendiente',
+        //         tareas: []
+        //     },
+        //     {
+        //         idProyecto: 2,
+        //         titulo: 'Software',
+        //         descripcion: 'Desarrollo de sistema',
+        //         fechaInicio: '2024-11-5',
+        //         unidadTiempo: 'Días',
+        //         horasTrabajoDia: 8,
+        //         numDecimales: 0,
+        //         estado: 'Pendiente',
+        //         tareas: []
+        //     }
+        // ];
 
         this.loading = false;
     }
