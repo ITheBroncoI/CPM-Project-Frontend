@@ -1,15 +1,16 @@
+import {Expose} from "class-transformer";
+
 export class ResponsibleModel {
-    id: number
-    responsable: string
+
+    @Expose({ name: 'id_responsable' })
+    idResponsable: number
     nombre: string
 
     constructor(options: {
-        id?: number;
-        responsable?: string;
+        idResponsable?: number;
         nombre? : string
     } = {}) {
-        this.id = options.id;
-        this.responsable = options.responsable;
+        this.idResponsable = options.idResponsable;
         this.nombre = options.nombre;
     }
 }
