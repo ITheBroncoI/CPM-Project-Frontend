@@ -1,4 +1,6 @@
 export class UserModel {
+
+    username: string
     email: string
     password: string
 
@@ -6,7 +8,8 @@ export class UserModel {
         email?: string;
         password?: string;
     } = {}) {
-        this.email = options.email;
-        this.password = options.password;
+        this.username = options.email
+        this.email = options.email
+        this.password = options.password
     }
 }

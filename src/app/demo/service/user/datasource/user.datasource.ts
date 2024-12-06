@@ -1,6 +1,6 @@
 import {UserModel} from "../model/user.model";
+import {Either} from "fp-ts/Either";
 
 export interface UserDatasource {
-    crearCuenta(request: UserModel): Promise<boolean>
-    iniciarSesion(request: UserModel): Promise<boolean>
+    autenticacion(request: UserModel, accion: string): Promise<Either<Error, boolean>>
 }

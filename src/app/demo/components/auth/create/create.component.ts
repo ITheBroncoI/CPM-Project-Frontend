@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { UserDatasourceImpl } from 'src/app/demo/service/user/datasource/user.datasource.impl';
 import { UserModel } from 'src/app/demo/service/user/model/user.model';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { LocalStorageService } from 'src/app/demo/service/localStorage/localStorageService';
+import { LocalStorageService } from 'src/app/demo/service/localStorage/local-storage.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BadCredentialsException, BadRequestException, InternalServerException } from 'src/app/demo/exceptions/exception';
 

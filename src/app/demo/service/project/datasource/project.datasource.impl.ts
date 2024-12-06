@@ -4,7 +4,7 @@ import { ProjectDatasource } from "./project.datasource";
 import { ProjectEndpoints } from "./project.endpoints";
 import { firstValueFrom } from "rxjs";
 import { plainToInstance } from "class-transformer";
-import { LocalStorageService } from "../../localStorage/localStorageService";
+import { LocalStorageService } from "../../localStorage/local-storage.service";
 import { BadRequestException, ForbiddenException, InternalServerException, NotFoundException } from "src/app/demo/exceptions/exception";
 
 export class ProjectDatasourceImpl implements ProjectDatasource {
@@ -45,7 +45,7 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
         }
     }
 
-    async buscarProyectos(): Promise<ProjectModel[]> {  
+    async buscarProyectos(): Promise<ProjectModel[]> {
         const endpoint = ProjectEndpoints.buscarProyectos;
 
         try {

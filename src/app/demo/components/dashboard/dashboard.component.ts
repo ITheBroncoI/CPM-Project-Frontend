@@ -12,7 +12,7 @@ import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload"
 import {LayoutService} from "../../../layout/service/app.layout.service";
 import {PrimeNGConfig} from "primeng/api";
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
-import {LocalStorageService} from '../../service/localStorage/localStorageService';
+import {LocalStorageService} from '../../service/localStorage/local-storage.service';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {ProjectModel} from '../../service/project/model/project.model';
 import { ErrorComponent } from '../auth/error/error.component';
@@ -77,7 +77,7 @@ export class DashboardComponent implements OnInit {
         } catch (error) {
             throw new NotFoundException;
         } finally {
-            this.loading = false; 
+            this.loading = false;
         }
 
         // Simulación de la carga de datos para las tareas

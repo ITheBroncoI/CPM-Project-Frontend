@@ -7,7 +7,7 @@ import {RippleModule} from "primeng/ripple";
 import * as d3 from 'd3';
 import {ActivatedRoute} from '@angular/router';
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
-import {LocalStorageService} from '../../service/localStorage/localStorageService';
+import {LocalStorageService} from '../../service/localStorage/local-storage.service';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {ProjectModel} from '../../service/project/model/project.model';
 import {TaskModel} from '../../service/project/model/task.model';
