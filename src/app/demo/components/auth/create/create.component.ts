@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { UserModel } from 'src/app/demo/service/user/model/user.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import {UserDatasource} from "../../../service/user/datasource/user.datasource";
+import { Router } from '@angular/router';
+import {UserDatasourceImpl} from "../../../service/user/datasource/user.datasource.impl";
 
 @Component({
   selector: 'app-create',
@@ -11,11 +11,10 @@ import {UserDatasource} from "../../../service/user/datasource/user.datasource";
 export class CreateComponent {
   password: string;
   email: string;
-  private userDatasource: UserDatasource;
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
+    private readonly userDatasource: UserDatasourceImpl
   ) {}
 
   async onCreateUser() {
@@ -25,7 +24,15 @@ export class CreateComponent {
           password: this.password
       })
 
-      const response = await this.userDatasource.autenticacion(newUser, 'signup')
+      const response = await this.userDatasource.crearCuenta(newUser)
+
+      if (response._tag === 'Right') {
+          await this.router.navigate(['/dashboard'])
+      }
+
+      if (response._tag === 'Left') {
+
+      }
 
   }
 }

@@ -8,11 +8,12 @@ import {InputTextModule} from "primeng/inputtext";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {FormsModule} from "@angular/forms";
 import {DialogModule} from "primeng/dialog";
-import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload";
+import {FileUpload, FileUploadModule} from "primeng/fileupload";
 import {LayoutService} from "../../../layout/service/app.layout.service";
 import {PrimeNGConfig} from "primeng/api";
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
 import {ProjectModel} from '../../service/project/model/project.model';
+import {ProjectRequestModel} from "../../service/project/model/project-request.model";
 
 @Component({
     selector: 'app-dashboard',
@@ -36,13 +37,16 @@ import {ProjectModel} from '../../service/project/model/project.model';
 export class DashboardComponent implements OnInit {
 
     projects: ProjectModel[] = []
+    tituloProyecto: string = '';
+    descripcionProyecto: string = '';
+    archivoBase64: string | null = null;
 
     constructor(
         public layoutService: LayoutService,
         private readonly primeNGConfig: PrimeNGConfig,
         private readonly router: Router,
         private readonly route: ActivatedRoute,
-        private projectDatasource: ProjectDatasourceImpl,
+        private readonly projectDatasource: ProjectDatasourceImpl,
     ) {}
 
     // Variables relacionadas a la tabla de proyectos
@@ -51,8 +55,6 @@ export class DashboardComponent implements OnInit {
 
     // Variables relacionadas a la pestaña de importación de proyectos
     visible: boolean = false;
-    tituloProyecto: string;
-    descripcionProyecto: string;
 
     // Referencia al componente p-fileUpload
     @ViewChild('fileUpload') fileUpload: FileUpload | undefined;
@@ -67,7 +69,7 @@ export class DashboardComponent implements OnInit {
         }
 
         if (response._tag === 'Left') {
-
+            console.log(response._tag)
         }
 
         this.loading = false;
@@ -99,16 +101,67 @@ export class DashboardComponent implements OnInit {
         }
     }
 
-    importarProyecto() {
-        // Implementacion de logica al momento de importar el objeto
+    async importarProyecto() {
+        if (!this.archivoBase64) {
+            console.error('No se ha cargado ningún archivo.');
+            return;
+        }
+
+        console.log('Creando proyecto...');
+
+        const project = new ProjectRequestModel({
+            titulo: this.tituloProyecto,
+            descripcion: this.descripcionProyecto,
+            file: this.archivoBase64
+        });
+
+        const response = await this.projectDatasource.nuevoProyecto(project);
+
+        if (response._tag === 'Right') {
+            console.log('Proyecto creado exitosamente');
+        }
+
+        if (response._tag === 'Left') {
+            console.error('Error al crear el proyecto:', response.left);
+        }
     }
 
-    subirArchivo($event: FileUploadEvent) {
-        // Implementacion al momento de seleccionar archivo
-        console.log("PRUEBA - TEST");
+    subirArchivo(event: any) {
+        const file = event.files[0];
+
+        if (!file) {
+            console.error('No se seleccionó un archivo.');
+            return;
+        }
+
+        if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+            console.error('El archivo debe ser de tipo Excel (.xls o .xlsx)');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const archivoCargado = reader.result as string;
+
+            // Busca el índice donde termina 'base64,'
+            const indiceInicio = archivoCargado.indexOf('base64,') + 'base64,'.length;
+
+            // Corta la cadena desde después de 'base64,'
+            if (indiceInicio !== -1) {
+                this.archivoBase64 = archivoCargado.substring(indiceInicio);
+                console.log('Archivo cargado correctamente (contenido ajustado):', this.archivoBase64);
+            }
+        };
+
+        reader.onerror = (error) => {
+            console.error('Error al leer el archivo:', error);
+        };
+
+        reader.readAsDataURL(file);
     }
 
-    seleccionarProyecto(event: any) {
-        this.router.navigate([`/detalleProyecto/${event.data.idProyecto}`], { relativeTo: this.route });
+
+    async seleccionarProyecto(event: any) {
+        await this.router.navigate([`/detalleProyecto/${event.data.idProyecto}`], { relativeTo: this.route });
     }
 }

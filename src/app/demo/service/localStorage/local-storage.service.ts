@@ -14,11 +14,12 @@ export class LocalStorageService {
         return localStorage.getItem('token');
     }
 
-    setFechaExpiracion(fecha_expiracion: string) {
-        localStorage.setItem('fecha_expiracion', fecha_expiracion);
+    setCSRFToken(token: string) {
+        localStorage.setItem('csrf_token', token)
     }
 
-    getFechaExpiracion(): string {
-        return localStorage.getItem('fecha_expiracion');
+    getCSRFToken(): string {
+        return localStorage.getItem('csrf_token')
     }
+
 }

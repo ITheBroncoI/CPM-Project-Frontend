@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import {HttpClientModule, HttpClientXsrfModule} from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { InputTextModule } from 'primeng/inputtext';
 import { SidebarModule } from 'primeng/sidebar';
@@ -31,6 +31,10 @@ import { AppLayoutComponent } from "./app.layout.component";
         BrowserModule,
         FormsModule,
         HttpClientModule,
+        HttpClientXsrfModule.withOptions({
+            cookieName: 'X-CSRFToken',
+            headerName: 'X-XSRF-TOKEN'
+        }),
         BrowserAnimationsModule,
         InputTextModule,
         SidebarModule,

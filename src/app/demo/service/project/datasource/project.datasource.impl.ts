@@ -30,14 +30,20 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
 
         const endpoint = ProjectEndpoints.nuevoProyecto;
 
+        const options = {
+            headers: this.headers,
+            withCredentials: true
+        };
+
         return firstValueFrom(
             this.http
-                .post(endpoint, instanceToPlain(request), { headers: this.headers })
+                .post(endpoint, instanceToPlain(request), options)
                 .pipe(
                     map(() => {
                         return right(true);
                     }),
                     catchError((error: HttpErrorResponse) => {
+                        console.log(error.message)
                         if (error.status === 400) return of(left(new BadRequestException()))
                         if (error.status === 403) return of(left(new ForbiddenException()))
                         if (error.status === 500) return of(left(new InternalServerException()))
@@ -54,7 +60,7 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
 
         return firstValueFrom(
             this.http
-                .get<any[]>(endpoint, { headers: this.headers })
+                .get(endpoint, { headers: this.headers })
                 .pipe(
                     map((response: any[]) => {
                         const projects = response.map(project => plainToInstance(ProjectModel, project));
