@@ -1,11 +1,8 @@
 import { Component } from '@angular/core';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
-import { Router } from "@angular/router";
-import { UserDatasourceImpl } from 'src/app/demo/service/user/datasource/user.datasource.impl';
 import { UserModel } from 'src/app/demo/service/user/model/user.model';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { LocalStorageService } from 'src/app/demo/service/localStorage/local-storage.service';
-import { BadCredentialsException, BadRequestException, InternalServerException } from 'src/app/demo/exceptions/exception';
+import {Router} from "@angular/router";
+import {UserDatasourceImpl} from "../../../service/user/datasource/user.datasource.impl";
 
 @Component({
     selector: 'app-login',
@@ -25,32 +22,31 @@ export class LoginComponent {
     password!: string;
     email!: string;
     errorMessage: string = '';
-    private userDatasource: UserDatasourceImpl;
 
     constructor(
         public layoutService: LayoutService,
-        private  router: Router,
-        private http: HttpClient
-    ) {
-        this.userDatasource = new UserDatasourceImpl(new LocalStorageService(), this.http);
-    }
+        private router: Router,
+        private userDatasource: UserDatasourceImpl
+    ) {}
 
     async onLogin() {
-        const user: UserModel = {
+
+        const user = new UserModel({
             email: this.email,
             password: this.password
-        };
+        })
 
-        try {
-            const success = await this.userDatasource.iniciarSesion(user);
-            if (success) this.router.navigate(['/dashboard']);
-        } catch (error) {
-            // Incluir lógica para toast notification
-            if (error instanceof HttpErrorResponse) {
-                if (error.status === 401) throw new BadCredentialsException
-                if (error.status === 400) throw new BadRequestException();
-                if (error.status === 500) throw new InternalServerException();
-            }
+        const response = await this.userDatasource.autenticacion(user, 'login')
+
+        if (response._tag === 'Right') {
+            console.log('Autenticado')
+            await this.router.navigate(['/dashboard'])
         }
+
+        if (response._tag === 'Left') {
+            const ex = response.left
+
+        }
+
     }
 }

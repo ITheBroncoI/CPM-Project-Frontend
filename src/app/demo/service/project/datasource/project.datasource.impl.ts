@@ -9,6 +9,7 @@ import { BadRequestException, ForbiddenException, InternalServerException, NotFo
 import {Injectable} from "@angular/core";
 import {ProjectRequestModel} from "../model/project-request.model";
 import {Either, left, right} from "fp-ts/Either";
+import {TaskModel} from "../model/task.model";
 
 @Injectable({
     providedIn: 'root'
@@ -79,7 +80,18 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
                 .get(endpoint, { headers: this.headers })
                 .pipe(
                     map((response: any) => {
+
+                        const tareas = []
+
+                        response.tareas?.map((task: any) => {
+                            const tarea = plainToInstance(TaskModel, task)
+                            tarea.color = tarea.holgura === 0 ? '#D62828' : '#003049'
+                            tareas.push(tarea)
+                        })
+
                         const project = plainToInstance(ProjectModel, response);
+                        project.tareas = tareas
+
                         return right(project);
                     }),
                     catchError((error: HttpErrorResponse) => {

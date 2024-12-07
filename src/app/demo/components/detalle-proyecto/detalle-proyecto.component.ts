@@ -1,4 +1,4 @@
-import {Component, ElementRef, ViewChild, AfterViewInit, OnInit} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, ViewChild} from '@angular/core';
 import {InputTextModule} from "primeng/inputtext";
 import {FormsModule} from "@angular/forms";
 import {InputTextareaModule} from "primeng/inputtextarea";
@@ -7,11 +7,8 @@ import {RippleModule} from "primeng/ripple";
 import * as d3 from 'd3';
 import {ActivatedRoute} from '@angular/router';
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
-import {LocalStorageService} from '../../service/localStorage/local-storage.service';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {ProjectModel} from '../../service/project/model/project.model';
 import {TaskModel} from '../../service/project/model/task.model';
-import {ResponsibleModel} from '../../service/project/model/responsible.model';
 import {NgIf} from "@angular/common";
 
 @Component({
@@ -29,13 +26,12 @@ import {NgIf} from "@angular/common";
     styleUrls: ['./detalle-proyecto.component.scss']
 })
 export class DetalleProyectoComponent implements AfterViewInit {
+    nombre: string;
     descripcionProyecto: string;
     fechaInicio: string;
     unidadTiempo: string;
     hrsTrabajoPorDia: string;
     id: number | null = null;
-    Tarea: TaskModel | undefined;
-    endpoints: ProjectDatasourceImpl;
     taskData: TaskModel[] = []
     taskSelected: number = 0
 
@@ -53,48 +49,36 @@ export class DetalleProyectoComponent implements AfterViewInit {
     fechaInicioTarea: string;
     fechaFinalTarea: string;
     estadoTarea: string;
-    responsables: string[];
+    responsables: string;
 
     ngAfterViewInit() {
-        this.buscarProyectoPorId().then(data => {
-            const tasks = data.tareas
 
-            const color_node = '#eeeeee'
-            const color_critical = '#8b0000'
-            const nodes = tasks.map((task) => {
-                return {
-                    num_tarea: task.numeroTarea,
-                    color: task.holgura == 0 ? color_critical : color_node,
-                    inicio_cercano: task.inicioTemprano,
-                    fin_cercano: task.finalTemprano,
-                    duracion: task.duracion,
-                    inicio_lejano: task.inicioTardio,
-                    fin_lejano: task.finalTardio,
-                    holgura: task.holgura,
-                    target: task.tareasDependencias
-                }
-            })
+        this.buscarProyectoPorId().then(proyecto => {
 
+            this.nombre = proyecto.titulo
+            this.descripcionProyecto = proyecto.descripcion
+            this.fechaInicio = this.formatFecha(proyecto.fechaInicio)
+            this.unidadTiempo = proyecto.unidadTiempo
+            this.hrsTrabajoPorDia = proyecto.horasTrabajoDia.toString()
 
-            this.createChart(nodes);
-        });
+            this.taskData = proyecto.tareas
+            this.createChart(this.taskData)
+        })
+
     }
 
-    constructor(private route: ActivatedRoute, private http: HttpClient) {
-        this.endpoints = new ProjectDatasourceImpl(new LocalStorageService(), this.http);
-    }
+    constructor(
+        private route: ActivatedRoute,
+        private projectDatasource: ProjectDatasourceImpl
+    ) {}
 
     ngOnInit(): void {
         this.route.paramMap.subscribe(params => {
             this.id = Number(params.get('id'));
-            console.log('ID recuperado:', this.id);
         });
     }
 
     taskCard(): TaskModel {
-        if (this.taskSelected === 0) {
-            return undefined;
-        }
 
         const selectedTask = this.taskData.find((task) => task.numeroTarea === this.taskSelected);
 
@@ -108,7 +92,7 @@ export class DetalleProyectoComponent implements AfterViewInit {
 
     // Método para asignar propiedades de la tarea
     private setTaskProperties(selectedTask: TaskModel): void {
-        this.idTarea = selectedTask.idTarea.toString();
+        this.idTarea = selectedTask.numeroTarea.toString();
         this.accionTarea = selectedTask.accion;
         this.inicioProximoTarea = selectedTask.inicioTemprano.toString();
         this.tiempoEsperadoTarea = selectedTask.tiempoProbable.toString();
@@ -116,143 +100,64 @@ export class DetalleProyectoComponent implements AfterViewInit {
         this.inicioLejanoTarea = selectedTask.inicioTardio.toString();
         this.finalLejanoTarea = selectedTask.finalTardio.toString();
         this.holguraTarea = selectedTask.holgura.toString();
-        this.fechaInicioTarea = selectedTask.fechaInicio;
-        this.fechaFinalTarea = selectedTask.fechaFinal;
+        this.fechaInicioTarea = this.formatFecha(selectedTask.fechaInicio);
+        this.fechaFinalTarea = this.formatFecha(selectedTask.fechaFinal);
         this.estadoTarea = selectedTask.estado;
         this.responsables = this.getResponsables(selectedTask);
     }
 
     // Método para obtener responsables
-    private getResponsables(selectedTask: TaskModel): string[] | null {
-        return selectedTask?.responsables ?
-            selectedTask.responsables.map(responsable => responsable.responsable) :
-            null;
+    private getResponsables(selectedTask: TaskModel): string {
+        if (!selectedTask?.responsables || selectedTask.responsables.length === 0) {
+            return 'Sin responsables asignados';
+        }
+
+        // Generar el texto con saltos de línea
+        return selectedTask.responsables
+            .map((responsable) => `- ${responsable.nombre}`)
+            .join('\n');
     }
 
+    private formatFecha(fechaISO: string): string {
+        if (!fechaISO) return '';
+
+        const fecha = new Date(fechaISO);
+        return new Intl.DateTimeFormat('es-ES', {
+            weekday: 'long', // Día de la semana (lunes, martes, etc.)
+            day: 'numeric', // Día del mes
+            month: 'long', // Mes completo (enero, febrero, etc.)
+            year: 'numeric', // Año completo
+        }).format(fecha);
+    }
 
     async buscarProyectoPorId(): Promise<ProjectModel> {
 
-        // return this.endpoints.buscarProyectoPorId(this.id)
-        // Creando los responsables
-        const responsable1 = new ResponsibleModel({id: 1, responsable: "Juan", nombre: "Juan Pérez"});
-        const responsable2 = new ResponsibleModel({id: 2, responsable: "Ana", nombre: "Ana Gómez"});
-        const responsable3 = new ResponsibleModel({id: 3, responsable: "Carlos", nombre: "Carlos López"});
+        const response = await this.projectDatasource.buscarProyectoPorId(this.id)
 
-        // Creando las tareas
-        const task1 = new TaskModel({
-            idTarea: 1,
-            numeroTarea: 1,
-            accion: "Definir requisitos",
-            tiempoOptimista: 5,
-            tiempoProbable: 7,
-            tiempoPesimista: 9,
-            inicioTemprano: 0,
-            duracion: 7,
-            finalTemprano: 7,
-            inicioTardio: 0,
-            finalTardio: 7,
-            holgura: 0,
-            fechaInicio: "2024-12-01",
-            fechaFinal: "2024-12-07",
-            notas: "Revisión inicial",
-            estado: "Pendiente",
-            responsables: [responsable1],
-            tareasDependencias: []
-        });
+        if (response._tag === 'Right'){
+            return response.right
+        }
 
-        const task2 = new TaskModel({
-            idTarea: 2,
-            numeroTarea: 2,
-            accion: "Desarrollo de interfaz",
-            tiempoOptimista: 3,
-            tiempoProbable: 5,
-            tiempoPesimista: 8,
-            inicioTemprano: 7,
-            duracion: 5,
-            finalTemprano: 12,
-            inicioTardio: 7,
-            finalTardio: 12,
-            holgura: 0,
-            fechaInicio: "2024-12-07",
-            fechaFinal: "2024-12-12",
-            notas: "Desarrollo del frontend",
-            estado: "Pendiente",
-            responsables: [responsable2],
-            tareasDependencias: [1]
-        });
+        if (response._tag === 'Left'){
+            return undefined
+        }
 
-        const task3 = new TaskModel({
-            idTarea: 3,
-            numeroTarea: 3,
-            accion: "Backend API",
-            tiempoOptimista: 6,
-            tiempoProbable: 8,
-            tiempoPesimista: 10,
-            inicioTemprano: 12,
-            duracion: 8,
-            finalTemprano: 20,
-            inicioTardio: 12,
-            finalTardio: 20,
-            holgura: 0,
-            fechaInicio: "2024-12-12",
-            fechaFinal: "2024-12-20",
-            notas: "Desarrollo del servidor",
-            estado: "Pendiente",
-            responsables: [responsable3],
-            tareasDependencias: [2]
-        });
-
-        const task4 = new TaskModel({
-            idTarea: 4,
-            numeroTarea: 4,
-            accion: "Pruebas unitarias",
-            tiempoOptimista: 2,
-            tiempoProbable: 4,
-            tiempoPesimista: 6,
-            inicioTemprano: 20,
-            duracion: 4,
-            finalTemprano: 24,
-            inicioTardio: 20,
-            finalTardio: 24,
-            holgura: 11,
-            fechaInicio: "2024-12-20",
-            fechaFinal: "2024-12-24",
-            notas: "Pruebas del sistema backend",
-            estado: "Pendiente",
-            responsables: [responsable1],
-            tareasDependencias: [3]
-        });
-
-
-        // Crear el proyecto y asignar las tareas
-        const project = new ProjectModel({
-            idProyecto: 1,
-            titulo: "Desarrollo de Plataforma",
-            descripcion: "Plataforma para gestión de proyectos",
-            fechaInicio: "2024-12-01",
-            unidadTiempo: "Días",
-            horasTrabajoDia: 8,
-            numDecimales: 2,
-            estado: "En progreso",
-            tareas: [task1, task2, task3, task4]
-        });
-        this.taskData = project.tareas
-        return project
-
+        return undefined
     }
 
-    private createChart(data: any[]): void {
+    private createChart(data: TaskModel[]): void {
+
         const links = [];
         data.forEach((d) => {
-            if (d.target.length > 0) {
-                d.target.forEach((targetId: number) => {
-                    links.push({source: d.num_tarea, target: targetId});
+            if (d.tareasDependencias.length > 0) {
+                d.tareasDependencias.forEach((targetId: number) => {
+                    links.push({source: d.numeroTarea, target: targetId});
                 });
             }
         });
 
         const width = 800;
-        const height = 400;
+        const height = 600;
         const radius = 30;
 
         const svg = d3
@@ -265,7 +170,7 @@ export class DetalleProyectoComponent implements AfterViewInit {
             .forceSimulation(data)
             .force(
                 'link',
-                d3.forceLink(links).id((d: any) => d.num_tarea).distance(150)
+                d3.forceLink(links).id((d: TaskModel) => d.numeroTarea).distance(100)
             )
             .force('charge', d3.forceManyBody().strength(-300))
             .force('center', d3.forceCenter(width / 2, height / 2));
@@ -276,7 +181,7 @@ export class DetalleProyectoComponent implements AfterViewInit {
             .enter()
             .append('line')
             .attr('class', 'link')
-            .attr('stroke', '#999')
+            .attr('stroke', '#121212')
             .attr('stroke-opacity', 0.6)
             .attr('stroke-width', 2);
 
@@ -297,15 +202,15 @@ export class DetalleProyectoComponent implements AfterViewInit {
         node
             .append('circle')
             .attr('r', radius)
-            .attr('fill', (d: any) => d.color);
+            .attr('fill', (d: TaskModel) => d.color);
 
         node
             .append('text')
             .attr('dy', '.35em')
-            .text((d: any) => d.num_tarea)
+            .text((d: any) => d.numeroTarea)
             .attr('font-size', '12px')
             .attr('text-anchor', 'middle')
-            .attr('fill', 'black');
+            .attr('fill', 'white');
 
         // Tooltip
         const tooltip = d3
@@ -314,19 +219,19 @@ export class DetalleProyectoComponent implements AfterViewInit {
             .attr('class', 'tooltip');
 
         node
-            .on('mouseover', (event, d: any) => {
+            .on('mouseover', (event, d: TaskModel) => {
                 tooltip
                     .transition()
                     .duration(200)
                     .style('opacity', 1);
                 tooltip
                     .html(
-                        `<strong>Tarea:</strong> ${d.num_tarea}<br>
-              <strong>Inicio cercano:</strong> ${d.inicio_cercano}<br>
-              <strong>Fin cercano:</strong> ${d.fin_cercano}<br>
+                        `<strong>Tarea:</strong> ${d.numeroTarea}<br>
+              <strong>Inicio cercano:</strong> ${d.inicioTemprano}<br>
+              <strong>Fin cercano:</strong> ${d.finalTemprano}<br>
               <strong>Duracion:</strong> ${d.duracion}<br>
-              <strong>Inicio lejano:</strong> ${d.inicio_lejano}<br>
-              <strong>Fin lejano:</strong> ${d.fin_lejano}<br>
+              <strong>Inicio lejano:</strong> ${d.inicioTardio}<br>
+              <strong>Fin lejano:</strong> ${d.finalTardio}<br>
               <strong>Holgura:</strong> ${d.holgura}`
                     )
                     .style('left', `${event.pageX + 10}px`)
@@ -341,9 +246,9 @@ export class DetalleProyectoComponent implements AfterViewInit {
                     .duration(200)
                     .style('opacity', 0);
             })
-            .on('click', (event, d: any) => {
-                console.log(`Tarea seleccionada: ${d.num_tarea}`);
-                this.taskSelected = d.num_tarea
+            .on('click', (event, d: TaskModel) => {
+                console.log(`Tarea seleccionada: ${d.numeroTarea}`);
+                this.taskSelected = d.numeroTarea
                 this.taskCard()
             });
 
@@ -376,10 +281,6 @@ export class DetalleProyectoComponent implements AfterViewInit {
             d.fx = null;
             d.fy = null;
         }
-    }
-
-    descargarExcel() {
-        // Lógica de descarga
     }
 
     borrarProyecto() {

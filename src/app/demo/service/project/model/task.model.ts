@@ -42,6 +42,7 @@ export class TaskModel {
     @Expose({ name: 'fecha_final' })
     fechaFinal: string
 
+    color: string
     notas: string
     estado: string
     responsables: ResponsibleModel[]
@@ -63,7 +64,8 @@ export class TaskModel {
         finalTardio? : number
         holgura? : number
         fechaInicio? : string
-        fechaFinal? : string
+        fechaFinal? : string,
+        color?: string,
         notas? : string
         estado? : string
         responsables? : ResponsibleModel[]
@@ -83,9 +85,10 @@ export class TaskModel {
         this.holgura = options.holgura
         this.fechaInicio = options.fechaInicio
         this.fechaFinal = options.fechaFinal
+        this.color = options.color
         this.notas = options.notas
         this.estado = options.estado
         this.responsables = options.responsables
-        this.tareasDependencias = options.tareasDependencias
+        this.tareasDependencias = options.tareasDependencias || []
     }
 }
