@@ -9,6 +9,8 @@ import {DividerModule} from "primeng/divider";
 import {InputTextModule} from "primeng/inputtext";
 import {ButtonModule} from "primeng/button";
 import {RippleModule} from "primeng/ripple";
+import {ToastModule} from "primeng/toast";
+import {MessageService} from "primeng/api";
 
 
 @NgModule({
@@ -21,7 +23,11 @@ import {RippleModule} from "primeng/ripple";
         DividerModule,
         InputTextModule,
         ButtonModule,
-        RippleModule
-    ]
+        RippleModule,
+        ToastModule
+    ],
+    providers: [
+        MessageService
+    ],
 })
 export class CreateModule { }

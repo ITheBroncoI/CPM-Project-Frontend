@@ -1,3 +1,4 @@
+<p-toast />
 <div class="flex flex-column p-5 border-round-2xl">
     <div class="card mb-0 shadow-2">
         <div class="flex flex-wrap justify-content-start">
@@ -121,9 +122,15 @@
                 <div
                     class="flex flex-column justify-content-center align-items-center border-round-xl border-dashed border-1 w-full h-10rem gap-2">
                     <i class="pi pi-cloud-upload align-content-center"
-                        style="color: var(--primary-color); font-size: 4rem"></i>
-                    <p-fileUpload mode="basic" chooseLabel="Seleccionar archivo" name="demo[]" url="localhost/"
-                        accept=".xls, .xlsx" maxFileSize="10000000" (onUpload)="subirArchivo($event)" />
+                       style="color: var(--primary-color); font-size: 4rem"></i>
+                    <p-fileUpload
+                        #fileUpload
+                        mode="basic"
+                        chooseLabel="Seleccionar archivo"
+                        name="demo[]"
+                        accept=".xls, .xlsx"
+                        maxFileSize="10000000"
+                        (onSelect)="subirArchivo()" />
                 </div>
             </div>
         </div>

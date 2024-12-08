@@ -2,11 +2,18 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from "@angular/common/http
 import { ProjectModel } from "../model/project.model";
 import { ProjectDatasource } from "./project.datasource";
 import { ProjectEndpoints } from "./project.endpoints";
-import { firstValueFrom } from "rxjs";
-import { plainToInstance } from "class-transformer";
-import { LocalStorageService } from "../../localStorage/localStorageService";
+import {catchError, firstValueFrom, map, of} from "rxjs";
+import {instanceToPlain, plainToInstance} from "class-transformer";
+import { LocalStorageService } from "../../localStorage/local-storage.service";
 import { BadRequestException, ForbiddenException, InternalServerException, NotFoundException } from "src/app/demo/exceptions/exception";
+import {Injectable} from "@angular/core";
+import {ProjectRequestModel} from "../model/project-request.model";
+import {Either, left, right} from "fp-ts/Either";
+import {TaskModel} from "../model/task.model";
 
+@Injectable({
+    providedIn: 'root'
+})
 export class ProjectDatasourceImpl implements ProjectDatasource {
 
     headers = new HttpHeaders({
@@ -19,74 +26,89 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
         private readonly http: HttpClient
     ) {}
 
-    async nuevoProyecto(archivoBase64: string): Promise<boolean> {
-        const headers = new HttpHeaders({
-            "Authorization": `Bearer ${this.local.getToken()}`,
-            "Content-Type": "application/json",
-            "File": archivoBase64
-        });
+    async nuevoProyecto(request: ProjectRequestModel): Promise<Either<Error, boolean>> {
 
         const endpoint = ProjectEndpoints.nuevoProyecto;
 
-        try {
-            const response = await firstValueFrom(
-                this.http.post(endpoint, {}, {headers: headers})
-            )
+        return firstValueFrom(
+            this.http
+                .post(endpoint, instanceToPlain(request), {headers: this.headers})
+                .pipe(
+                    map(() => {
+                        return right(true);
+                    }),
+                    catchError((error: HttpErrorResponse) => {
+                        if (error.status === 400){
 
-            return true;
-        } catch (error) {
-            if (error instanceof HttpErrorResponse) {
-                if (error.status === 400) throw new BadRequestException();
-                if (error.status === 403) throw new ForbiddenException();
-                if (error.status === 404) throw new NotFoundException();
-                if (error.status === 500) throw new InternalServerException();
-            }
-            return false;
-        }
+                            if (error.error && Array.isArray(error.error)){
+                                const mensajeError = error.error[0]
+                                return of(left(new BadRequestException(mensajeError)))
+                            }
+                        }
+                        if (error.status === 403) return of(left(new ForbiddenException()))
+                        if (error.status === 500) return of(left(new InternalServerException()))
+
+                        return of(left(new Error('Error desconocido')));
+                    })
+                )
+        )
     }
 
-    async buscarProyectos(): Promise<ProjectModel[]> {  
+    async buscarProyectos(): Promise<Either<Error, ProjectModel[]>> {
+
         const endpoint = ProjectEndpoints.buscarProyectos;
 
-        try {
-            const response = await firstValueFrom(
-                this.http.get<any[]>(endpoint, {headers: this.headers})
-            )
+        return firstValueFrom(
+            this.http
+                .get(endpoint, { headers: this.headers })
+                .pipe(
+                    map((response: any[]) => {
+                        const projects = response.map(project => plainToInstance(ProjectModel, project));
+                        return right(projects);
+                    }),
+                    catchError((error: HttpErrorResponse) => {
+                        if (error.status === 400) return of(left(new BadRequestException()));
+                        if (error.status === 403) return of(left(new ForbiddenException()));
+                        if (error.status === 404) return of(left(new NotFoundException()));
+                        if (error.status === 500) return of(left(new InternalServerException()));
 
-            const projects = response.map(project => {
-                return plainToInstance(ProjectModel, project)
-            });
-
-            return projects
-        } catch (error) {
-            if (error instanceof HttpErrorResponse) {
-                if (error.status === 400) throw new BadRequestException();
-                if (error.status === 403) throw new ForbiddenException();
-                if (error.status === 404) throw new NotFoundException();
-                if (error.status === 500) throw new InternalServerException();
-            }
-            return [];
-        }
+                        return of(left(new Error('Error desconocido')));
+                    })
+                )
+        )
     }
 
-    async buscarProyectoPorId(idProyecto: number): Promise<ProjectModel> {
-        const endpoint = ProjectEndpoints.buscarProyectoPorId;
+    async buscarProyectoPorId(idProyecto: number): Promise<Either<Error, ProjectModel>> {
+        const endpoint = `${ProjectEndpoints.buscarProyectoPorId}${idProyecto}`;
 
-        try {
-            const response = await firstValueFrom(
-                this.http.get(endpoint, {headers: this.headers})
-            )
+        return firstValueFrom(
+            this.http
+                .get(endpoint, { headers: this.headers })
+                .pipe(
+                    map((response: any) => {
 
-            return plainToInstance(ProjectModel, response)
-        } catch (error) {
-            if (error instanceof HttpErrorResponse) {
-                if (error.status === 400) throw new BadRequestException();
-                if (error.status === 403) throw new ForbiddenException();
-                if (error.status === 404) throw new NotFoundException();
-                if (error.status === 500) throw new InternalServerException();
-            }
+                        const tareas = []
 
-            throw new Error('Error')
-        }
+                        response.tareas?.map((task: any) => {
+                            const tarea = plainToInstance(TaskModel, task)
+                            tarea.color = tarea.holgura === 0 ? '#D62828' : '#003049'
+                            tareas.push(tarea)
+                        })
+
+                        const project = plainToInstance(ProjectModel, response);
+                        project.tareas = tareas
+
+                        return right(project);
+                    }),
+                    catchError((error: HttpErrorResponse) => {
+                        if (error.status === 400) return of(left(new BadRequestException()));
+                        if (error.status === 403) return of(left(new ForbiddenException()));
+                        if (error.status === 404) return of(left(new NotFoundException()));
+                        if (error.status === 500) return of(left(new InternalServerException()));
+
+                        return of(left(new Error('Error desconocido')));
+                    })
+                )
+        )
     }
 }

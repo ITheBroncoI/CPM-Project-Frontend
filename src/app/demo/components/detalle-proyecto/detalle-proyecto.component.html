@@ -1,7 +1,7 @@
 <div class="flex flex-column gap-4">
     <div class="flex flex-column border-round-2xl">
         <div class="card mb-0 shadow-2">
-            <p class="font-semibold text-500 text-3xl -my-2">Proyecto:</p>
+            <p class="font-semibold text-500 text-3xl -my-2">Proyecto: {{ nombre }}</p>
         </div>
     </div>
     <div class="flex flex-column border-round-2xl">
@@ -67,17 +67,6 @@
                                 <p class="font-semibold justify-content-end">{{ responsables }}</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex flex-column w-full mt-3 gap-2">
-                        <button
-                            pButton
-                            pRipple
-                            label="Borrar proyecto"
-                            icon="pi pi-trash"
-                            iconPos="right"
-                            class="p-button-danger"
-                            (click)="borrarProyecto()">
-                        </button>
                     </div>
                 </div>
                 <div class="flex-column w-9">

@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DashboardComponent } from './dashboard.component';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
+import {MessageService} from "primeng/api";
 
 describe('DashboardComponent', () => {
     let component: DashboardComponent;
@@ -17,7 +18,8 @@ describe('DashboardComponent', () => {
                     useValue: {
                         snapshot: { paramMap: of({}) }
                     }
-                }
+                },
+                MessageService
             ]
         }).compileComponents();
 
@@ -28,5 +30,5 @@ describe('DashboardComponent', () => {
 
     it('should create', () => {
         expect(component).toBeTruthy();
-    });
+    });
 });

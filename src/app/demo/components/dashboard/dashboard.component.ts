@@ -3,20 +3,19 @@ import {DatePipe, NgStyle} from "@angular/common";
 import {ButtonModule} from "primeng/button";
 import {RippleModule} from "primeng/ripple";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
-import {Table, TableModule, TableRowSelectEvent} from "primeng/table";
+import {Table, TableModule} from "primeng/table";
 import {InputTextModule} from "primeng/inputtext";
 import {InputTextareaModule} from "primeng/inputtextarea";
 import {FormsModule} from "@angular/forms";
 import {DialogModule} from "primeng/dialog";
-import {FileUpload, FileUploadEvent, FileUploadModule} from "primeng/fileupload";
+import {FileUpload, FileUploadModule} from "primeng/fileupload";
 import {LayoutService} from "../../../layout/service/app.layout.service";
-import {PrimeNGConfig} from "primeng/api";
+import {MessageService, PrimeNGConfig} from "primeng/api";
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
-import {LocalStorageService} from '../../service/localStorage/localStorageService';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {ProjectModel} from '../../service/project/model/project.model';
-import { ErrorComponent } from '../auth/error/error.component';
-import { NotFoundException } from '../../exceptions/exception';
+import {ProjectRequestModel} from "../../service/project/model/project-request.model";
+import {ToastModule} from "primeng/toast";
+import {BadRequestException, InternalServerException} from "../../exceptions/exception";
 
 @Component({
     selector: 'app-dashboard',
@@ -32,80 +31,42 @@ import { NotFoundException } from '../../exceptions/exception';
         InputTextareaModule,
         FormsModule,
         DialogModule,
-        FileUploadModule
+        FileUploadModule,
+        ToastModule
     ],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-    endpoints: ProjectDatasourceImpl;
+
     projects: ProjectModel[] = []
+    tituloProyecto: string = '';
+    descripcionProyecto: string = '';
+    archivoBase64: string | null = null;
 
     constructor(
         public layoutService: LayoutService,
         private readonly primeNGConfig: PrimeNGConfig,
         private readonly router: Router,
         private readonly route: ActivatedRoute,
-        private http: HttpClient
+        private readonly messageService: MessageService,
+        private readonly projectDatasource: ProjectDatasourceImpl,
     ) {
-        this.endpoints = new ProjectDatasourceImpl(new LocalStorageService(), this.http);
-    }
-
-    async buscarProyectos(): Promise<ProjectModel[]>{
-        return this.endpoints.buscarProyectos()
     }
 
     // Variables relacionadas a la tabla de proyectos
-    tasks: any[] = []; // Aquí guardaremos las tareas o proyectos
     @ViewChild('filter') filter!: ElementRef;
     loading: boolean = true; // Estado de carga
 
     // Variables relacionadas a la pestaña de importación de proyectos
     visible: boolean = false;
-    tituloProyecto: string;
-    descripcionProyecto: string;
 
     // Referencia al componente p-fileUpload
     @ViewChild('fileUpload') fileUpload: FileUpload | undefined;
 
     async ngOnInit() {
         this.primeNGConfig.ripple = true;
-
-        // Carga real de datos de proyectos
-        try {
-            this.projects = await this.buscarProyectos();
-        } catch (error) {
-            throw new NotFoundException;
-        } finally {
-            this.loading = false; 
-        }
-
-        // Simulación de la carga de datos para las tareas
-        // this.projects = [
-        //     {
-        //         idProyecto: 1,
-        //         titulo: 'Construcción',
-        //         descripcion: 'Planificación de obra',
-        //         fechaInicio: '2024-10-1',
-        //         unidadTiempo: 'Días',
-        //         horasTrabajoDia: 8,
-        //         numDecimales: 0,
-        //         estado: 'Pendiente',
-        //         tareas: []
-        //     },
-        //     {
-        //         idProyecto: 2,
-        //         titulo: 'Software',
-        //         descripcion: 'Desarrollo de sistema',
-        //         fechaInicio: '2024-11-5',
-        //         unidadTiempo: 'Días',
-        //         horasTrabajoDia: 8,
-        //         numDecimales: 0,
-        //         estado: 'Pendiente',
-        //         tareas: []
-        //     }
-        // ];
-
+        await this.buscarProyectos()
         this.loading = false;
     }
 
@@ -115,7 +76,6 @@ export class DashboardComponent implements OnInit {
     }
 
     // Método para limpiar los filtros
-
     clear(table: Table) {
         table.clear();
         this.filter.nativeElement.value = '';
@@ -129,23 +89,129 @@ export class DashboardComponent implements OnInit {
         this.visible = false;
         this.tituloProyecto = '';
         this.descripcionProyecto = '';
-        // Limpiar la selección de archivo
+        this.archivoBase64 = null
         if (this.fileUpload) {
-            this.fileUpload.clear();  // Esto elimina el archivo seleccionado
+            this.fileUpload.clear();
         }
     }
 
-    importarProyecto() {
-        // Implementacion de logica al momento de importar el objeto
+    async importarProyecto() {
+
+        if (!this.validarArchivo()){
+            return
+        }
+
+        if (!this.archivoBase64) {
+            return;
+        }
+
+        const project = new ProjectRequestModel({
+            titulo: this.tituloProyecto,
+            descripcion: this.descripcionProyecto,
+            file: this.archivoBase64
+        });
+
+        const response = await this.projectDatasource.nuevoProyecto(project);
+
+        if (response._tag === 'Right') {
+            this.mensageAlerta('Por favor, recargue la lista de proyectos', 'Proyecto creado con éxito', 'success')
+            await this.buscarProyectos()
+            this.cerrarPestanaImportacion()
+        }
+
+        if (response._tag === 'Left') {
+
+            const ex = response.left
+            if (ex instanceof BadRequestException) {
+
+                let messageError = 'Ocurrió un error al procesar el archivo. Por favor, intenta nuevamente con una plantilla válida.'
+
+                if (ex.message != '') {
+                    messageError = ex.message
+                }
+
+                this.mensageAlerta(messageError, 'Formato no válido')
+            }
+
+            if (ex instanceof InternalServerException) {
+                this.mensageAlerta('Hubo un error interno en el servidor. Por favor, intente nuevamente más tarde', 'Error interno del servidor', 'error')
+            }
+
+        }
     }
 
-    subirArchivo($event: FileUploadEvent) {
-        // Implementacion al momento de seleccionar archivo
-        console.log("PRUEBA - TEST");
+    subirArchivo() {
+        const file = this.fileUpload.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const archivoCargado = reader.result as string;
+
+            // Busca el índice donde termina 'base64,'
+            const indiceInicio = archivoCargado.indexOf('base64,') + 'base64,'.length;
+
+            // Corta la cadena desde después de 'base64,'
+            if (indiceInicio !== -1) {
+                this.archivoBase64 = archivoCargado.substring(indiceInicio);
+            }
+        };
+
+        reader.onerror = (error) => {
+            console.error('Error al leer el archivo:', error);
+        };
+
+        reader.readAsDataURL(file);
     }
 
-    seleccionarProyecto(event: any) {
-        //console.log('Folio seleccionado:', event.data.folio);
-        this.router.navigate([`/detalleProyecto/${event.data.folio}`], { relativeTo: this.route });
+    async seleccionarProyecto(event: any) {
+        await this.router.navigate([`/detalleProyecto/${event.data.idProyecto}`], { relativeTo: this.route });
     }
+
+    validarArchivo(): boolean {
+        if (!this.tituloProyecto || this.tituloProyecto.trim() === '') {
+            this.mensageAlerta('Por favor, asegúrate de ingresar un título antes de continuar', 'Título obligatorio')
+            return false
+        }
+
+        if (this.tituloProyecto.length <= 12) {
+            this.mensageAlerta('El título requiere al menos 12 caracteres', 'Título obligatorio')
+            return false
+        }
+
+        if (!this.descripcionProyecto) {
+            this.descripcionProyecto = ''
+        }
+
+        if (!this.archivoBase64 || this.archivoBase64 === ''){
+            this.mensageAlerta('No se detectó ningún archivo cargado. Por favor, selecciona un archivo para proceder.', 'Plantilla de excel requerida')
+            return false
+        }
+
+        return true
+    }
+
+    mensageAlerta(message: string, title: string = 'Alerta', type: string = 'warn',) {
+        this.messageService.add({
+            severity: type,
+            summary: title,
+            detail: message
+        })
+    }
+
+    async buscarProyectos() {
+        const response = await this.projectDatasource.buscarProyectos()
+
+        if (response._tag === 'Right') {
+            this.projects = response.right
+        }
+
+        if (response._tag === 'Left') {
+            this.mensageAlerta('Hubo un error interno en el servidor. Por favor, intente nuevamente más tarde', 'error', 'Error interno del servidor')
+        }
+    }
+
 }

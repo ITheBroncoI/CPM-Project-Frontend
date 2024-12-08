@@ -36,6 +36,6 @@ export class ProjectModel {
         this.horasTrabajoDia = options.horasTrabajoDia
         this.numDecimales = options.numDecimales
         this.estado = options.estado
-        this.tareas = options.tareas
+        this.tareas = options.tareas || []
     }
 }
