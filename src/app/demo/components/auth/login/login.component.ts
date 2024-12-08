@@ -63,7 +63,7 @@ export class LoginComponent {
 
     }
 
-    private validarCampos(): boolean {
+    validarCampos(): boolean {
 
         let message = ''
 
@@ -112,7 +112,7 @@ export class LoginComponent {
         return true
     }
 
-    private mensageAlerta(message: string, type: string = 'warn', title: string = 'Alerta') {
+    mensageAlerta(message: string, type: string = 'warn', title: string = 'Alerta') {
         this.messageService.add({
             severity: type,
             summary: title,

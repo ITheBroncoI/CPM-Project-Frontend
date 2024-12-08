@@ -20,11 +20,13 @@ export class UserDatasourceImpl implements UserDatasource {
 
     async autenticacion(request: UserModel, accion: string): Promise<Either<Error, boolean>> {
 
-        await this.buscarTokenCookie()
+        const endpoint = accion === 'login'
+            ? UserEndpoints.iniciarSesion
+            : UserEndpoints.crearCuenta
 
         return firstValueFrom(
             this.http
-                .post(UserEndpoints.iniciarSesion, instanceToPlain(request), { observe: 'response' })
+                .post(endpoint, instanceToPlain(request), { observe: 'response' })
                 .pipe(
                     map((response: any) => {
 
@@ -52,7 +54,6 @@ export class UserDatasourceImpl implements UserDatasource {
     async crearCuenta(request: UserModel): Promise<Either<Error, boolean>> {
 
         const endpoint = UserEndpoints.crearCuenta
-        console.log(endpoint)
 
         return firstValueFrom(
             this.http
