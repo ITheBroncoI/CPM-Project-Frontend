@@ -51,37 +51,6 @@ export class UserDatasourceImpl implements UserDatasource {
 
     }
 
-    async crearCuenta(request: UserModel): Promise<Either<Error, boolean>> {
-
-        const endpoint = UserEndpoints.crearCuenta
-
-        return firstValueFrom(
-            this.http
-                .post(endpoint, instanceToPlain(request), { withCredentials: true, observe: 'response' })
-                .pipe(
-                    map((response: any) => {
-
-                        const token = response.body?.access
-
-                        if (!token) {
-                            return left( new InternalServerException())
-                        }
-
-                        this.local.setToken(token)
-                        return right(true)
-                    }),
-                    catchError((error: HttpErrorResponse) => {
-                        if (error.status === 401) return of(left(new BadCredentialsException()));
-                        if (error.status === 400) return of(left(new BadRequestException()));
-                        if (error.status === 500) return of(left(new InternalServerException()));
-
-                        return of(left(new Error('Error desconocido')));
-                    })
-                )
-        )
-
-    }
-
     async buscarTokenCookie(): Promise<boolean> {
 
         return firstValueFrom(

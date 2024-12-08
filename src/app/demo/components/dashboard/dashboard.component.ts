@@ -10,10 +10,12 @@ import {FormsModule} from "@angular/forms";
 import {DialogModule} from "primeng/dialog";
 import {FileUpload, FileUploadModule} from "primeng/fileupload";
 import {LayoutService} from "../../../layout/service/app.layout.service";
-import {PrimeNGConfig} from "primeng/api";
+import {MessageService, PrimeNGConfig} from "primeng/api";
 import {ProjectDatasourceImpl} from '../../service/project/datasource/project.datasource.impl';
 import {ProjectModel} from '../../service/project/model/project.model';
 import {ProjectRequestModel} from "../../service/project/model/project-request.model";
+import {ToastModule} from "primeng/toast";
+import {BadRequestException, InternalServerException} from "../../exceptions/exception";
 
 @Component({
     selector: 'app-dashboard',
@@ -29,7 +31,8 @@ import {ProjectRequestModel} from "../../service/project/model/project-request.m
         InputTextareaModule,
         FormsModule,
         DialogModule,
-        FileUploadModule
+        FileUploadModule,
+        ToastModule
     ],
     templateUrl: './dashboard.component.html',
     styleUrl: './dashboard.component.scss'
@@ -46,8 +49,10 @@ export class DashboardComponent implements OnInit {
         private readonly primeNGConfig: PrimeNGConfig,
         private readonly router: Router,
         private readonly route: ActivatedRoute,
+        private readonly messageService: MessageService,
         private readonly projectDatasource: ProjectDatasourceImpl,
-    ) {}
+    ) {
+    }
 
     // Variables relacionadas a la tabla de proyectos
     @ViewChild('filter') filter!: ElementRef;
@@ -61,17 +66,7 @@ export class DashboardComponent implements OnInit {
 
     async ngOnInit() {
         this.primeNGConfig.ripple = true;
-
-        const response = await this.projectDatasource.buscarProyectos()
-
-        if (response._tag === 'Right') {
-            this.projects = response.right
-        }
-
-        if (response._tag === 'Left') {
-            console.log(response._tag)
-        }
-
+        await this.buscarProyectos()
         this.loading = false;
     }
 
@@ -81,7 +76,6 @@ export class DashboardComponent implements OnInit {
     }
 
     // Método para limpiar los filtros
-
     clear(table: Table) {
         table.clear();
         this.filter.nativeElement.value = '';
@@ -95,19 +89,21 @@ export class DashboardComponent implements OnInit {
         this.visible = false;
         this.tituloProyecto = '';
         this.descripcionProyecto = '';
-        // Limpiar la selección de archivo
+        this.archivoBase64 = null
         if (this.fileUpload) {
-            this.fileUpload.clear();  // Esto elimina el archivo seleccionado
+            this.fileUpload.clear();
         }
     }
 
     async importarProyecto() {
-        if (!this.archivoBase64) {
-            console.error('No se ha cargado ningún archivo.');
-            return;
+
+        if (!this.validarArchivo()){
+            return
         }
 
-        console.log('Creando proyecto...');
+        if (!this.archivoBase64) {
+            return;
+        }
 
         const project = new ProjectRequestModel({
             titulo: this.tituloProyecto,
@@ -118,24 +114,36 @@ export class DashboardComponent implements OnInit {
         const response = await this.projectDatasource.nuevoProyecto(project);
 
         if (response._tag === 'Right') {
-            console.log('Proyecto creado exitosamente');
+            this.mensageAlerta('Por favor, recargue la lista de proyectos', 'Proyecto creado con éxito', 'success')
+            await this.buscarProyectos()
+            this.cerrarPestanaImportacion()
         }
 
         if (response._tag === 'Left') {
-            console.error('Error al crear el proyecto:', response.left);
+
+            const ex = response.left
+            if (ex instanceof BadRequestException) {
+
+                let messageError = 'Ocurrió un error al procesar el archivo. Por favor, intenta nuevamente con una plantilla válida.'
+
+                if (ex.message != '') {
+                    messageError = ex.message
+                }
+
+                this.mensageAlerta(messageError, 'Formato no válido')
+            }
+
+            if (ex instanceof InternalServerException) {
+                this.mensageAlerta('Hubo un error interno en el servidor. Por favor, intente nuevamente más tarde', 'Error interno del servidor', 'error')
+            }
+
         }
     }
 
-    subirArchivo(event: any) {
-        const file = event.files[0];
+    subirArchivo() {
+        const file = this.fileUpload.files[0];
 
         if (!file) {
-            console.error('No se seleccionó un archivo.');
-            return;
-        }
-
-        if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
-            console.error('El archivo debe ser de tipo Excel (.xls o .xlsx)');
             return;
         }
 
@@ -149,7 +157,6 @@ export class DashboardComponent implements OnInit {
             // Corta la cadena desde después de 'base64,'
             if (indiceInicio !== -1) {
                 this.archivoBase64 = archivoCargado.substring(indiceInicio);
-                console.log('Archivo cargado correctamente (contenido ajustado):', this.archivoBase64);
             }
         };
 
@@ -160,8 +167,51 @@ export class DashboardComponent implements OnInit {
         reader.readAsDataURL(file);
     }
 
-
     async seleccionarProyecto(event: any) {
         await this.router.navigate([`/detalleProyecto/${event.data.idProyecto}`], { relativeTo: this.route });
     }
+
+    validarArchivo(): boolean {
+        if (!this.tituloProyecto || this.tituloProyecto.trim() === '') {
+            this.mensageAlerta('Por favor, asegúrate de ingresar un título antes de continuar', 'Título obligatorio')
+            return false
+        }
+
+        if (this.tituloProyecto.length <= 12) {
+            this.mensageAlerta('El título requiere al menos 12 caracteres', 'Título obligatorio')
+            return false
+        }
+
+        if (!this.descripcionProyecto) {
+            this.descripcionProyecto = ''
+        }
+
+        if (!this.archivoBase64 || this.archivoBase64 === ''){
+            this.mensageAlerta('No se detectó ningún archivo cargado. Por favor, selecciona un archivo para proceder.', 'Plantilla de excel requerida')
+            return false
+        }
+
+        return true
+    }
+
+    mensageAlerta(message: string, title: string = 'Alerta', type: string = 'warn',) {
+        this.messageService.add({
+            severity: type,
+            summary: title,
+            detail: message
+        })
+    }
+
+    async buscarProyectos() {
+        const response = await this.projectDatasource.buscarProyectos()
+
+        if (response._tag === 'Right') {
+            this.projects = response.right
+        }
+
+        if (response._tag === 'Left') {
+            this.mensageAlerta('Hubo un error interno en el servidor. Por favor, intente nuevamente más tarde', 'error', 'Error interno del servidor')
+        }
+    }
+
 }

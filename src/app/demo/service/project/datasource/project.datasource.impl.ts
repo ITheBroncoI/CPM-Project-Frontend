@@ -30,21 +30,21 @@ export class ProjectDatasourceImpl implements ProjectDatasource {
 
         const endpoint = ProjectEndpoints.nuevoProyecto;
 
-        const options = {
-            headers: this.headers,
-            withCredentials: true
-        };
-
         return firstValueFrom(
             this.http
-                .post(endpoint, instanceToPlain(request), options)
+                .post(endpoint, instanceToPlain(request), {headers: this.headers})
                 .pipe(
                     map(() => {
                         return right(true);
                     }),
                     catchError((error: HttpErrorResponse) => {
-                        console.log(error.message)
-                        if (error.status === 400) return of(left(new BadRequestException()))
+                        if (error.status === 400){
+
+                            if (error.error && Array.isArray(error.error)){
+                                const mensajeError = error.error[0]
+                                return of(left(new BadRequestException(mensajeError)))
+                            }
+                        }
                         if (error.status === 403) return of(left(new ForbiddenException()))
                         if (error.status === 500) return of(left(new InternalServerException()))
 
