@@ -1,0 +1,11 @@
+.white-button {
+    //background-color: white !important;
+    color: white; /* Cambiar el color del texto si es necesario */
+    border-color: white;
+    border-width: 2px;
+}
+
+.white-button:hover {
+    background-color: lightgray; /* Color de fondo al pasar el ratón */
+    border-color: lightgray;
+}
